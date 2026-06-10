@@ -26,11 +26,23 @@ namespace AgroRegionApp
                 if (user == null)
                     return;
 
-                using (var mainForm = new MainForm(user))
+                try
                 {
-                    mainForm.ShowDialog();
-                    if (!mainForm.ReturnToLogin)
-                        return;
+                    using (var mainForm = new MainForm(user))
+                    {
+                        mainForm.ShowDialog();
+                        if (!mainForm.ReturnToLogin)
+                            return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        "Не удалось открыть главное окно:\n\n" + ex.Message,
+                        AppBranding.SystemTitle,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                    return;
                 }
             }
         }

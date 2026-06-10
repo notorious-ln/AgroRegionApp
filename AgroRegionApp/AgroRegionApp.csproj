@@ -48,8 +48,38 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppBranding.cs" />
+    <Compile Include="Data\AnalyticsService.cs" />
     <Compile Include="Data\AuthService.cs" />
+    <Compile Include="Data\Db.cs" />
     <Compile Include="Data\PasswordHasher.cs" />
+    <Compile Include="Data\PurchaseService.cs" />
+    <Compile Include="Data\ReferenceService.cs" />
+    <Compile Include="Data\SalesService.cs" />
+    <Compile Include="Data\WarehouseService.cs" />
+    <Compile Include="Navigation\NavSection.cs" />
+    <Compile Include="Navigation\RoleNavigation.cs" />
+    <Compile Include="Roles.cs" />
+    <Compile Include="Data\PurchaseMockData.cs" />
+    <Compile Include="UI\AppTheme.cs" />
+    <Compile Include="UI\GridHelper.cs" />
+    <Compile Include="UI\ModalForm.cs" />
+    <Compile Include="UI\TabStripControl.cs" />
+    <Compile Include="UI\UiControls.cs" />
+    <Compile Include="Views\AnalyticsView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\PurchasesView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\ReferencesView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\SalesView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\WarehouseView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Forms\LoginForm.cs">
       <SubType>Form</SubType>
     </Compile>
