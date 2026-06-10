@@ -76,6 +76,7 @@
     <Compile Include="Views\PurchasesView.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="Views\INavigationScreen.cs" />
     <Compile Include="Views\ReferencesView.cs">
       <SubType>UserControl</SubType>
     </Compile>

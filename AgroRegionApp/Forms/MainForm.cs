@@ -260,12 +260,13 @@ namespace AgroRegionApp.Forms
 
         private Panel CreateNavButton(NavItem item)
         {
+            var state = new NavButtonState { Item = item };
             var panel = new Panel
             {
                 Height = 32,
                 Dock = DockStyle.Top,
                 Cursor = Cursors.Hand,
-                Tag = item,
+                Tag = state,
                 BackColor = AppTheme.Navy
             };
 
@@ -293,7 +294,60 @@ namespace AgroRegionApp.Forms
             foreach (Control c in panel.Controls)
                 c.Click += (s, e) => ShowSection(item.Section);
 
+            ApplyNavButtonStyle(panel);
+            AttachNavHover(panel);
             return panel;
+        }
+
+        private sealed class NavButtonState
+        {
+            public NavItem Item { get; set; }
+            public bool Active { get; set; }
+            public bool Hovered { get; set; }
+        }
+
+        private static void ApplyNavButtonStyle(Panel panel)
+        {
+            var state = (NavButtonState)panel.Tag;
+            panel.BackColor = state.Active
+                ? AppTheme.Blue
+                : state.Hovered ? AppTheme.BlueHover : AppTheme.Navy;
+
+            foreach (Control child in panel.Controls)
+            {
+                if (child is Label lbl)
+                {
+                    lbl.ForeColor = state.Active || state.Hovered
+                        ? Color.White
+                        : child.Left < 20 ? Color.White : AppTheme.SidebarText;
+                    lbl.BackColor = Color.Transparent;
+                    lbl.Font = state.Active ? AppTheme.FontUiBold : AppTheme.FontUi;
+                }
+            }
+        }
+
+        private static void AttachNavHover(Panel panel)
+        {
+            void SetHover(bool on)
+            {
+                var state = (NavButtonState)panel.Tag;
+                state.Hovered = on;
+                ApplyNavButtonStyle(panel);
+            }
+
+            void Wire(Control control)
+            {
+                control.MouseEnter += (s, e) => SetHover(true);
+                control.MouseLeave += (s, e) =>
+                {
+                    if (!panel.ClientRectangle.Contains(panel.PointToClient(Cursor.Position)))
+                        SetHover(false);
+                };
+            }
+
+            Wire(panel);
+            foreach (Control child in panel.Controls)
+                Wire(child);
         }
 
         private Panel CreateLogoutPanel()
@@ -334,7 +388,41 @@ namespace AgroRegionApp.Forms
             label.Click += logout;
             panel.Controls.Add(icon);
             panel.Controls.Add(label);
+            AttachSidebarHover(panel, AppTheme.LogoutHover);
             return panel;
+        }
+
+        private static void AttachSidebarHover(Panel panel, Color hoverBg)
+        {
+            var normalBg = AppTheme.Navy;
+            var normalText = AppTheme.SidebarText;
+
+            void SetHover(bool on)
+            {
+                panel.BackColor = on ? hoverBg : normalBg;
+                foreach (Control child in panel.Controls)
+                {
+                    if (child is Label lbl)
+                    {
+                        lbl.ForeColor = on ? Color.White : normalText;
+                        lbl.BackColor = Color.Transparent;
+                    }
+                }
+            }
+
+            void Wire(Control control)
+            {
+                control.MouseEnter += (s, e) => SetHover(true);
+                control.MouseLeave += (s, e) =>
+                {
+                    if (!panel.ClientRectangle.Contains(panel.PointToClient(Cursor.Position)))
+                        SetHover(false);
+                };
+            }
+
+            Wire(panel);
+            foreach (Control child in panel.Controls)
+                Wire(child);
         }
 
         private Panel CreateTitleBarButtons(Panel titleBar)
@@ -456,14 +544,9 @@ namespace AgroRegionApp.Forms
 
             foreach (var btn in _navButtons)
             {
-                var nav = (NavItem)btn.Tag;
-                var active = nav.Section == section;
-                btn.BackColor = active ? AppTheme.Blue : AppTheme.Navy;
-                foreach (Control c in btn.Controls)
-                {
-                    if (c is Label l)
-                        l.ForeColor = active ? Color.White : (c.Left < 20 ? Color.White : AppTheme.SidebarText);
-                }
+                var state = (NavButtonState)btn.Tag;
+                state.Active = state.Item.Section == section;
+                ApplyNavButtonStyle(btn);
             }
 
             if (!_screens.TryGetValue(section, out var screen))
@@ -475,6 +558,9 @@ namespace AgroRegionApp.Forms
             _contentHost.Controls.Clear();
             screen.Dock = DockStyle.Fill;
             _contentHost.Controls.Add(screen);
+
+            if (screen is INavigationScreen navigationScreen)
+                navigationScreen.OnNavigatedTo();
         }
 
         private Control CreateScreen(NavSection section)

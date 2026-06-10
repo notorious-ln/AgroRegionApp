@@ -7,6 +7,7 @@ namespace AgroRegionApp.UI
         public static readonly Color Navy = Color.FromArgb(30, 53, 88);
         public static readonly Color Blue = Color.FromArgb(46, 117, 182);
         public static readonly Color BlueHover = Color.FromArgb(37, 63, 102);
+        public static readonly Color LogoutHover = Color.FromArgb(196, 43, 28);
         public static readonly Color SidebarText = Color.FromArgb(184, 205, 224);
         public static readonly Color SidebarMuted = Color.FromArgb(127, 168, 204);
         public static readonly Color SidebarBorder = Color.FromArgb(46, 82, 128);

@@ -32,9 +32,12 @@ namespace AgroRegionApp.UI
         {
             switch (status)
             {
+                case "Покупатель":
                 case "Новый":
                 case "Оформлен":
                     return (Color.FromArgb(219, 234, 254), Color.FromArgb(29, 78, 216));
+                case "Поставщик":
+                    return (Color.FromArgb(254, 249, 195), Color.FromArgb(133, 77, 14));
                 case "Подтверждён":
                     return (Color.FromArgb(254, 249, 195), Color.FromArgb(133, 77, 14));
                 case "Готов к отгрузке":
