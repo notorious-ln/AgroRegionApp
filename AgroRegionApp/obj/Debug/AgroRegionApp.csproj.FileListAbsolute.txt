@@ -1,0 +1,9 @@
+c:\Users\artem\source\repos\AgroRegionApp\AgroRegionApp\obj\Debug\AgroRegionApp.csproj.AssemblyReference.cache
+c:\Users\artem\source\repos\AgroRegionApp\AgroRegionApp\obj\Debug\AgroRegionApp.Properties.Resources.resources
+c:\Users\artem\source\repos\AgroRegionApp\AgroRegionApp\obj\Debug\AgroRegionApp.csproj.GenerateResource.cache
+c:\Users\artem\source\repos\AgroRegionApp\AgroRegionApp\obj\Debug\AgroRegionApp.csproj.CoreCompileInputs.cache
+c:\Users\artem\source\repos\AgroRegionApp\AgroRegionApp\bin\Debug\AgroRegionApp.exe.config
+c:\Users\artem\source\repos\AgroRegionApp\AgroRegionApp\bin\Debug\AgroRegionApp.exe
+c:\Users\artem\source\repos\AgroRegionApp\AgroRegionApp\bin\Debug\AgroRegionApp.pdb
+c:\Users\artem\source\repos\AgroRegionApp\AgroRegionApp\obj\Debug\AgroRegionApp.exe
+c:\Users\artem\source\repos\AgroRegionApp\AgroRegionApp\obj\Debug\AgroRegionApp.pdb
