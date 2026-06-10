@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="AppBranding.cs" />
     <Compile Include="CompanyProfile.cs" />
+    <Compile Include="Data\AnalyticsReportService.cs" />
     <Compile Include="Data\AnalyticsService.cs" />
     <Compile Include="Data\AuthService.cs" />
     <Compile Include="Data\Db.cs" />
@@ -64,6 +65,7 @@
     <Compile Include="Navigation\RoleNavigation.cs" />
     <Compile Include="Roles.cs" />
     <Compile Include="Data\PurchaseMockData.cs" />
+    <Compile Include="UI\AnalyticsChart.cs" />
     <Compile Include="UI\AppTheme.cs" />
     <Compile Include="UI\CounterpartyDialogs.cs" />
     <Compile Include="UI\GridHelper.cs" />

@@ -39,14 +39,15 @@ namespace AgroRegionApp.UI
                 Controls.Add(btn);
             }
 
-            SelectTab(0);
+            SelectTab(0, notify: false);
         }
 
-        public void SelectTab(int index)
+        public void SelectTab(int index, bool notify = true)
         {
             for (var j = 0; j < _buttons.Length; j++)
                 StyleTab(_buttons[j], j == index);
-            TabChanged?.Invoke(index);
+            if (notify)
+                TabChanged?.Invoke(index);
         }
 
         private static void StyleTab(Button btn, bool active)

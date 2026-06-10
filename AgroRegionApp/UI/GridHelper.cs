@@ -54,6 +54,9 @@ namespace AgroRegionApp.UI
                     return (Color.FromArgb(254, 243, 199), Color.FromArgb(146, 64, 14));
                 case "Нет в наличии":
                     return (Color.FromArgb(254, 226, 226), Color.FromArgb(220, 38, 38));
+                case "Есть долг":
+                case "Оплачено":
+                    return (Color.FromArgb(243, 244, 246), AppTheme.TextBody);
                 default:
                     return (Color.FromArgb(243, 244, 246), AppTheme.TextBody);
             }
