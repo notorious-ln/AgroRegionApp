@@ -28,12 +28,25 @@ BEGIN
     SELECT AccountID, LastName, FirstName, MiddleName, '+7 (900) 000-00-00'
     FROM (
         VALUES
-            ('manager1', N'Иванов', N'Иван', N'Иванович'),
-            ('warehouse1', N'Петров', N'Пётр', N'Петрович'),
-            ('director', N'Сидоров', N'Сергей', N'Сергеевич'),
-            ('comdirector', N'Козлов', N'Кирилл', N'Кириллович'),
+            ('manager1', N'Ким', N'Александр', N'Александрович'),
+            ('warehouse1', N'Ахметов', N'Али', N'Мухамедович'),
+            ('director', N'Ромашов', N'Игорь', N'Владимирович'),
+            ('comdirector', N'Трубачев', N'Сергей', N'Владимирович'),
             ('blocked_user', N'Блок', N'Борис', N'Борисович')
     ) AS src(Login, LastName, FirstName, MiddleName)
     INNER JOIN UserAccount ua ON ua.Login = src.Login;
 END
 GO
+
+-- Обновление ФИО для уже существующих тестовых учётных записей
+UPDATE e
+SET LastName = src.LastName, FirstName = src.FirstName, MiddleName = src.MiddleName
+FROM Employee e
+INNER JOIN UserAccount ua ON ua.AccountID = e.AccountID
+INNER JOIN (
+    VALUES
+        ('manager1', N'Ким', N'Александр', N'Александрович'),
+        ('warehouse1', N'Ахметов', N'Али', N'Мухамедович'),
+        ('director', N'Ромашов', N'Игорь', N'Владимирович'),
+        ('comdirector', N'Трубачев', N'Сергей', N'Владимирович')
+) AS src(Login, LastName, FirstName, MiddleName) ON src.Login = ua.Login;

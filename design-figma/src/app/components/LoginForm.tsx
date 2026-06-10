@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Btn, Alert } from "./ui";
 
 const USERS = [
-  { login: "manager1",     password: "1234", role: "Менеджер по продажам",   name: "Иванов И.И.",   blocked: false },
-  { login: "warehouse1",   password: "1234", role: "Руководитель склада",    name: "Петров П.П.",   blocked: false },
-  { login: "director",     password: "1234", role: "Генеральный директор",   name: "Сидоров С.С.", blocked: false },
-  { login: "comdirector",  password: "1234", role: "Коммерческий директор",  name: "Козлов К.К.",  blocked: false },
+  { login: "manager1",     password: "1234", role: "Менеджер по продажам",   name: "Ким А.А.",       blocked: false },
+  { login: "warehouse1",   password: "1234", role: "Руководитель склада",    name: "Ахметов А.М.",   blocked: false },
+  { login: "director",     password: "1234", role: "Генеральный директор",   name: "Ромашов И.В.",   blocked: false },
+  { login: "comdirector",  password: "1234", role: "Коммерческий директор",  name: "Трубачев С.В.",  blocked: false },
   { login: "blocked_user", password: "1234", role: "Менеджер по продажам",   name: "Блок Б.Б.",    blocked: true  },
 ];
 

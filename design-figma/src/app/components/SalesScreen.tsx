@@ -270,7 +270,7 @@ export function SalesScreen({ role }: SalesScreenProps) {
               <div className="flex flex-col gap-2 pt-1">
                 <Field label="Фактически:" placeholder="напр.: Пшеница — 85 т, подтверждено 09.06.2026" />
                 <Field label="Время проверки:" value={new Date().toLocaleString("ru-RU")} readOnly />
-                <Field label="Руководитель:" value="Петров П.П. (Склад №1)" readOnly />
+                <Field label="Руководитель:" value="Ахметов А.М. (Склад №1)" readOnly />
               </div>
             </Box>
             <div className="flex justify-end gap-2">
