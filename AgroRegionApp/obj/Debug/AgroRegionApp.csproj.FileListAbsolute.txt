@@ -7,3 +7,8 @@ c:\Users\artem\source\repos\AgroRegionApp\AgroRegionApp\bin\Debug\AgroRegionApp.
 c:\Users\artem\source\repos\AgroRegionApp\AgroRegionApp\bin\Debug\AgroRegionApp.pdb
 c:\Users\artem\source\repos\AgroRegionApp\AgroRegionApp\obj\Debug\AgroRegionApp.exe
 c:\Users\artem\source\repos\AgroRegionApp\AgroRegionApp\obj\Debug\AgroRegionApp.pdb
+c:\Users\artem\source\repos\AgroRegionApp\AgroRegionApp\bin\Debug\Templates\Documents\SchetNaOplatu.doc
+c:\Users\artem\source\repos\AgroRegionApp\AgroRegionApp\bin\Debug\Templates\Documents\DogovorKupliProdazhi.doc
+c:\Users\artem\source\repos\AgroRegionApp\AgroRegionApp\bin\Debug\Templates\Documents\Torg12.doc
+c:\Users\artem\source\repos\AgroRegionApp\AgroRegionApp\bin\Debug\Templates\Documents\TTN.doc
+c:\Users\artem\source\repos\AgroRegionApp\AgroRegionApp\bin\Debug\Templates\Documents\DogovorPostavshika.doc

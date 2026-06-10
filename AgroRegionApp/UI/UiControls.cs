@@ -145,7 +145,8 @@ namespace AgroRegionApp.UI
                 Font = AppTheme.FontUi,
                 BorderStyle = BorderStyle.FixedSingle,
                 ReadOnly = readOnly,
-                BackColor = readOnly ? Color.FromArgb(243, 244, 246) : Color.White
+                BackColor = readOnly ? Color.FromArgb(243, 244, 246) : Color.White,
+                Margin = new Padding(0)
             };
         }
 

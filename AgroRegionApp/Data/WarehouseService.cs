@@ -67,7 +67,7 @@ SELECT 'ЗП-' + RIGHT('00000' + CAST(so.SalesOrderID AS VARCHAR(5)), 5),
        N'Продажа',
        st.StatusName,
        ISNULL(p.Name, N'—'),
-       ISNULL(ps.Quantity, 0)
+       ISNULL(so.Quantity, 0)
 FROM SalesOrder so
 INNER JOIN Customer c ON c.CustomerID = so.CustomerID
 INNER JOIN SalesOrderStatus st ON st.StatusID = so.StatusID

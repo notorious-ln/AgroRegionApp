@@ -29,6 +29,9 @@ namespace AgroRegionApp.UI
         public static readonly Color HintBorder = Color.FromArgb(191, 219, 254);
         public static readonly Color WarnBg = Color.FromArgb(255, 251, 235);
         public static readonly Color WarnBorder = Color.FromArgb(253, 230, 138);
+        public static readonly Color SuccessBg = Color.FromArgb(240, 253, 244);
+        public static readonly Color SuccessBorder = Color.FromArgb(187, 247, 208);
+        public static readonly Color SuccessText = Color.FromArgb(21, 128, 61);
 
         public static readonly Font FontUi = new Font("Segoe UI", 8.25f);
         public static readonly Font FontUiBold = new Font("Segoe UI", 8.25f, FontStyle.Bold);

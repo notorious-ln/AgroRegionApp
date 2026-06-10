@@ -481,7 +481,7 @@ namespace AgroRegionApp.Forms
         {
             switch (section)
             {
-                case NavSection.Sales: return new SalesView();
+                case NavSection.Sales: return new SalesView(_user);
                 case NavSection.Warehouse: return new WarehouseView();
                 case NavSection.Purchases: return new PurchasesView(_user);
                 case NavSection.References: return new ReferencesView();

@@ -48,9 +48,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppBranding.cs" />
+    <Compile Include="CompanyProfile.cs" />
     <Compile Include="Data\AnalyticsService.cs" />
     <Compile Include="Data\AuthService.cs" />
     <Compile Include="Data\Db.cs" />
+    <Compile Include="Data\DocumentContext.cs" />
+    <Compile Include="Data\DocumentService.cs" />
+    <Compile Include="Data\WordTemplateService.cs" />
     <Compile Include="Data\PasswordHasher.cs" />
     <Compile Include="Data\PurchaseService.cs" />
     <Compile Include="Data\ReferenceService.cs" />
@@ -61,6 +65,7 @@
     <Compile Include="Roles.cs" />
     <Compile Include="Data\PurchaseMockData.cs" />
     <Compile Include="UI\AppTheme.cs" />
+    <Compile Include="UI\CounterpartyDialogs.cs" />
     <Compile Include="UI\GridHelper.cs" />
     <Compile Include="UI\ModalForm.cs" />
     <Compile Include="UI\TabStripControl.cs" />
@@ -116,6 +121,21 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <Content Include="Templates\Documents\SchetNaOplatu.doc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Templates\Documents\DogovorKupliProdazhi.doc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Templates\Documents\Torg12.doc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Templates\Documents\TTN.doc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Templates\Documents\DogovorPostavshika.doc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

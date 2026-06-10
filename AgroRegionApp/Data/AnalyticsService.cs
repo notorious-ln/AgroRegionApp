@@ -56,9 +56,8 @@ namespace AgroRegionApp.Data
             const string sql = @"
 SELECT MONTH(so.CreationDate) AS M,
        COUNT(*) AS Cnt,
-       ISNULL(SUM(so.PricePerKg * ISNULL(ps.Quantity, 0)), 0) AS Amount
+       ISNULL(SUM(so.PricePerKg * ISNULL(so.Quantity, 0)), 0) AS Amount
 FROM SalesOrder so
-LEFT JOIN ProductStock ps ON ps.StockID = so.StockID
 WHERE YEAR(so.CreationDate) = @Year
 GROUP BY MONTH(so.CreationDate)
 ORDER BY M";

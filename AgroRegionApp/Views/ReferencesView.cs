@@ -35,7 +35,7 @@ namespace AgroRegionApp.Views
             _grid = UiControls.CreateGrid();
             _grid.Dock = DockStyle.Top;
             _grid.Height = 240;
-            _grid.SelectionChanged += (s, e) => OnSelectionChanged();
+            _grid.SelectionChanged += GridOnSelectionChanged;
 
             _detailPanel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(0, 8, 0, 0), Visible = false };
             var box = UiControls.CreateGroupBox("Реквизиты");
@@ -58,11 +58,17 @@ namespace AgroRegionApp.Views
             LoadData();
         }
 
+        private void GridOnSelectionChanged(object sender, EventArgs e) => OnSelectionChanged();
+
         private void LoadData()
         {
+            _grid.SelectionChanged -= GridOnSelectionChanged;
             try
             {
                 _detailPanel.Visible = false;
+                _grid.DataSource = null;
+                _grid.ClearSelection();
+
                 if (_activeTab == 0)
                 {
                     var customers = ReferenceService.GetCustomers();
@@ -98,16 +104,23 @@ namespace AgroRegionApp.Views
                 MessageBox.Show("Не удалось загрузить справочники:\n" + ex.Message, AppBranding.SystemTitle,
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+            finally
+            {
+                _grid.SelectionChanged += GridOnSelectionChanged;
+            }
         }
 
         private void OnSelectionChanged()
         {
-            if (_grid.CurrentRow == null)
+            if (_grid.CurrentRow == null || _grid.CurrentRow.Index < 0)
                 return;
 
             var row = _grid.CurrentRow;
             if (_activeTab == 0)
             {
+                if (row.Cells.Count < 5)
+                    return;
+
                 _lblDetail.Text =
                     $"Тип: {row.Cells[0].Value}\r\n" +
                     $"Наименование: {row.Cells[1].Value}\r\n" +
@@ -117,6 +130,9 @@ namespace AgroRegionApp.Views
             }
             else
             {
+                if (row.Cells.Count < 3)
+                    return;
+
                 _lblDetail.Text =
                     $"Наименование: {row.Cells[0].Value}\r\n" +
                     $"Сорт: {row.Cells[1].Value}\r\n" +

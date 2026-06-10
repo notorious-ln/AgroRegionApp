@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 
@@ -75,6 +76,48 @@ namespace AgroRegionApp.Data
             }
 
             return list;
+        }
+
+        public static int CreateCustomer(string name, string phone, string email, string address, string inn)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Укажите наименование покупателя.");
+
+            const string sql = @"
+INSERT INTO Customer (Name, PhoneNumber, Email, Address, INN, DebtAmount)
+VALUES (@Name, @Phone, @Email, @Address, @INN, 0);
+SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+            using (var conn = Db.OpenConnection())
+            using (var cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("@Name", name.Trim());
+                cmd.Parameters.AddWithValue("@Phone", string.IsNullOrWhiteSpace(phone) ? (object)DBNull.Value : phone.Trim());
+                cmd.Parameters.AddWithValue("@Email", string.IsNullOrWhiteSpace(email) ? (object)DBNull.Value : email.Trim());
+                cmd.Parameters.AddWithValue("@Address", string.IsNullOrWhiteSpace(address) ? (object)DBNull.Value : address.Trim());
+                cmd.Parameters.AddWithValue("@INN", string.IsNullOrWhiteSpace(inn) ? (object)DBNull.Value : inn.Trim());
+                return (int)cmd.ExecuteScalar();
+            }
+        }
+
+        public static int CreateSupplier(string name, string phone, string email)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Укажите наименование поставщика.");
+
+            const string sql = @"
+INSERT INTO Supplier (Name, PhoneNumber, Email)
+VALUES (@Name, @Phone, @Email);
+SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+            using (var conn = Db.OpenConnection())
+            using (var cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("@Name", name.Trim());
+                cmd.Parameters.AddWithValue("@Phone", string.IsNullOrWhiteSpace(phone) ? (object)DBNull.Value : phone.Trim());
+                cmd.Parameters.AddWithValue("@Email", string.IsNullOrWhiteSpace(email) ? (object)DBNull.Value : email.Trim());
+                return (int)cmd.ExecuteScalar();
+            }
         }
 
         public static List<ProductRow> GetProducts()
