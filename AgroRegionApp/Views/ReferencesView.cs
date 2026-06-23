@@ -57,8 +57,8 @@ namespace AgroRegionApp.Views
             _grid = UiControls.CreateGrid();
             _grid.Dock = DockStyle.Top;
             _grid.Height = 176;
-            _grid.SelectionChanged += GridOnSelectionChanged;
             GridHelper.ApplyStatusColumnFormatting(_grid, "Тип");
+            AttachGridSelectionHandlers();
 
             _detailPanel = new Panel
             {
@@ -189,7 +189,7 @@ namespace AgroRegionApp.Views
             _txtProdVariety = AddDetailField(fields, 0, 2, "Сорт:");
             _txtProdSeason = AddDetailField(fields, 1, 0, "Сезонность:");
             _txtProdUnit = AddDetailField(fields, 1, 2, "Ед. изм.:");
-            _txtProdPrice = AddDetailField(fields, 2, 0, "Баз. цена:");
+            _txtProdPrice = AddDetailField(fields, 2, 0, "Баз. цена (₽/кг):");
 
             box.Controls.Add(fields);
             panel.Controls.Add(box);
@@ -213,7 +213,7 @@ namespace AgroRegionApp.Views
 
         private void LoadData()
         {
-            _grid.SelectionChanged -= GridOnSelectionChanged;
+            DetachGridSelectionHandlers();
             try
             {
                 _selectedCp = null;
@@ -232,12 +232,14 @@ namespace AgroRegionApp.Views
                     _products = ReferenceService.GetProducts();
                     UiControls.BindGrid(_grid, _products.Select(p => new
                     {
+                        Id = p.Id,
                         Наименование = p.Name,
                         Сорт = p.Variety,
                         Сезонность = p.Seasonality,
                         ЕдИзм = p.Unit,
-                        БазЦена = p.BasePrice.ToString("N0")
+                        БазЦена = p.BasePrice.ToString("G29")
                     }).ToList());
+                    ConfigureReferenceGrid(isCounterparty: false);
                     FormatProductGrid();
                 }
 
@@ -250,7 +252,7 @@ namespace AgroRegionApp.Views
             }
             finally
             {
-                _grid.SelectionChanged += GridOnSelectionChanged;
+                AttachGridSelectionHandlers();
             }
         }
 
@@ -273,17 +275,35 @@ namespace AgroRegionApp.Views
                 return typeOk && textOk;
             }).ToList();
 
-            UiControls.BindGrid(_grid, filtered.Select(c => new
+            DetachGridSelectionHandlers();
+            try
             {
-                Наименование = c.Name,
-                Тип = c.Type,
-                ИНН = string.IsNullOrEmpty(c.Inn) ? "—" : c.Inn,
-                Телефон = string.IsNullOrEmpty(c.Phone) ? "—" : c.Phone,
-                Email = string.IsNullOrEmpty(c.Email) ? "—" : c.Email
-            }).ToList());
+                _selectedCp = null;
+                _selectedProduct = null;
+                _detailPanel.Visible = false;
+                UpdateToolbarState();
 
-            if (_grid.Columns.Contains("Email"))
-                _grid.Columns["Email"].HeaderText = "E-mail";
+                UiControls.BindGrid(_grid, filtered.Select(c => new
+                {
+                    Id = c.Id,
+                    IsCustomer = c.IsCustomer,
+                    Наименование = c.Name,
+                    Тип = c.Type,
+                    ИНН = string.IsNullOrEmpty(c.Inn) ? "—" : c.Inn,
+                    Телефон = string.IsNullOrEmpty(c.Phone) ? "—" : c.Phone,
+                    Email = string.IsNullOrEmpty(c.Email) ? "—" : c.Email
+                }).ToList());
+                ConfigureReferenceGrid(isCounterparty: true);
+
+                if (_grid.Columns.Contains("Email"))
+                    _grid.Columns["Email"].HeaderText = "E-mail";
+
+                _grid.ClearSelection();
+            }
+            finally
+            {
+                AttachGridSelectionHandlers();
+            }
         }
 
         private void FormatProductGrid()
@@ -291,7 +311,7 @@ namespace AgroRegionApp.Views
             if (_grid.Columns.Contains("ЕдИзм"))
                 _grid.Columns["ЕдИзм"].HeaderText = "Ед. изм.";
             if (_grid.Columns.Contains("БазЦена"))
-                _grid.Columns["БазЦена"].HeaderText = "Баз. цена (₽/т)";
+                _grid.Columns["БазЦена"].HeaderText = "Баз. цена (₽/кг)";
         }
 
         private string GetSearchText()
@@ -299,25 +319,9 @@ namespace AgroRegionApp.Views
             return (_txtSearch == null ? "" : GetFieldText(_txtSearch, "Поиск по названию, ИНН...")).ToLowerInvariant();
         }
 
-        private List<CounterpartyEntry> GetFilteredCounterparties()
-        {
-            var search = GetSearchText();
-            var typeFilter = _cmbType?.SelectedItem?.ToString() ?? "Все типы";
-            return _counterparties.Where(c =>
-            {
-                var typeOk = typeFilter == "Все типы"
-                    || (typeFilter == "Покупатели" && c.IsCustomer)
-                    || (typeFilter == "Поставщики" && !c.IsCustomer);
-                var textOk = string.IsNullOrEmpty(search)
-                    || c.Name.ToLowerInvariant().Contains(search)
-                    || (c.Inn ?? "").Contains(search);
-                return typeOk && textOk;
-            }).ToList();
-        }
-
         private void GridOnSelectionChanged(object sender, EventArgs e)
         {
-            if (_grid.CurrentRow == null || _grid.CurrentRow.Index < 0)
+            if (_grid.CurrentRow == null || _grid.CurrentRow.Index < 0 || _grid.CurrentRow.IsNewRow)
             {
                 _selectedCp = null;
                 _selectedProduct = null;
@@ -326,29 +330,99 @@ namespace AgroRegionApp.Views
                 return;
             }
 
-            var index = _grid.CurrentRow.Index;
             if (_activeTab == 0)
             {
-                var filtered = GetFilteredCounterparties();
-                if (index >= filtered.Count)
+                if (!TryGetSelectedCounterparty(out var cp))
                     return;
 
-                _selectedCp = filtered[index];
+                _selectedCp = cp;
                 _selectedProduct = null;
                 ShowCounterpartyDetail(_selectedCp);
             }
             else
             {
-                if (index >= _products.Count)
+                if (!TryGetSelectedProduct(out var product))
                     return;
 
-                _selectedProduct = _products[index];
+                _selectedProduct = product;
                 _selectedCp = null;
                 ShowProductDetail(_selectedProduct);
             }
 
             _detailPanel.Visible = true;
             UpdateToolbarState();
+        }
+
+        private bool TryGetSelectedCounterparty(out CounterpartyEntry entry)
+        {
+            entry = null;
+            var row = _grid.CurrentRow;
+            if (row == null || !_grid.Columns.Contains("Id") || !_grid.Columns.Contains("IsCustomer"))
+                return false;
+
+            var id = Convert.ToInt32(row.Cells["Id"].Value);
+            var isCustomer = Convert.ToBoolean(row.Cells["IsCustomer"].Value);
+            entry = _counterparties.FirstOrDefault(c => c.Id == id && c.IsCustomer == isCustomer);
+            return entry != null;
+        }
+
+        private bool TryGetSelectedProduct(out ProductRow product)
+        {
+            product = null;
+            var row = _grid.CurrentRow;
+            if (row == null || !_grid.Columns.Contains("Id"))
+                return false;
+
+            var id = Convert.ToInt32(row.Cells["Id"].Value);
+            product = _products.FirstOrDefault(p => p.Id == id);
+            return product != null;
+        }
+
+        private void ConfigureReferenceGrid(bool isCounterparty)
+        {
+            if (_grid.Columns.Contains("Id"))
+            {
+                _grid.Columns["Id"].Visible = false;
+                _grid.Columns["Id"].SortMode = DataGridViewColumnSortMode.NotSortable;
+            }
+
+            if (isCounterparty && _grid.Columns.Contains("IsCustomer"))
+            {
+                _grid.Columns["IsCustomer"].Visible = false;
+                _grid.Columns["IsCustomer"].SortMode = DataGridViewColumnSortMode.NotSortable;
+            }
+
+            foreach (DataGridViewColumn column in _grid.Columns)
+            {
+                if (column.Visible)
+                    column.SortMode = DataGridViewColumnSortMode.NotSortable;
+            }
+        }
+
+        private void GridOnCellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0)
+                GridOnSelectionChanged(sender, EventArgs.Empty);
+        }
+
+        private void GridOnRowEnter(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0)
+                GridOnSelectionChanged(sender, EventArgs.Empty);
+        }
+
+        private void AttachGridSelectionHandlers()
+        {
+            _grid.SelectionChanged += GridOnSelectionChanged;
+            _grid.CellClick += GridOnCellClick;
+            _grid.RowEnter += GridOnRowEnter;
+        }
+
+        private void DetachGridSelectionHandlers()
+        {
+            _grid.SelectionChanged -= GridOnSelectionChanged;
+            _grid.CellClick -= GridOnCellClick;
+            _grid.RowEnter -= GridOnRowEnter;
         }
 
         private void ShowCounterpartyDetail(CounterpartyEntry cp)
@@ -373,7 +447,7 @@ namespace AgroRegionApp.Views
             _txtProdVariety.Text = product.Variety;
             _txtProdSeason.Text = product.Seasonality;
             _txtProdUnit.Text = product.Unit;
-            _txtProdPrice.Text = product.BasePrice.ToString("N0") + " ₽/т";
+            _txtProdPrice.Text = product.BasePrice.ToString("G29") + " ₽/кг";
         }
 
         private void UpdateToolbarState()
@@ -442,7 +516,7 @@ namespace AgroRegionApp.Views
                     return;
 
                 var answer = MessageBox.Show(
-                    $"Удалить товар «{_selectedProduct.Name}»?",
+                    $"Удалить товар «{_selectedProduct.Name}» ({_selectedProduct.Variety})?",
                     AppBranding.SystemTitle,
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question);
@@ -594,7 +668,7 @@ namespace AgroRegionApp.Views
                 AttachPlaceholder(txtName, "Пшеница 3 кл.");
                 AttachPlaceholder(txtVariety, "Экстра");
                 AttachPlaceholder(txtSeason, "Лето-2026");
-                AttachPlaceholder(txtPrice, "5000");
+                AttachPlaceholder(txtPrice, "5");
             }
 
             using (var form = new ModalForm(title, 420, 340))
@@ -614,7 +688,7 @@ namespace AgroRegionApp.Views
                     AddFormRow(table, 1, "Сорт:", txtVariety);
                     AddFormRow(table, 2, "Сезонность:", txtSeason);
                     AddFormRow(table, 3, "Ед. изм.:", cmbUnit);
-                    AddFormRow(table, 4, "Баз. цена (₽/т):", txtPrice);
+                    AddFormRow(table, 4, "Баз. цена (₽/кг):", txtPrice);
                 });
 
                 var footer = CreateDialogFooter(form, () =>
@@ -629,9 +703,13 @@ namespace AgroRegionApp.Views
                     var variety = GetFieldText(txtVariety, "Экстра");
                     var season = GetFieldText(txtSeason, "Лето-2026");
                     var unit = DisplayToUnit(cmbUnit.SelectedItem?.ToString());
-                    var priceText = GetFieldText(txtPrice, "5000");
-                    if (!int.TryParse(priceText.Replace(" ", ""), out var price))
-                        price = 0;
+                    var priceText = GetFieldText(txtPrice, "5");
+                    if (!decimal.TryParse(priceText.Replace(" ", "").Replace(",", "."),
+                            System.Globalization.NumberStyles.Any,
+                            System.Globalization.CultureInfo.InvariantCulture,
+                            out var priceDecimal))
+                        priceDecimal = 0;
+                    var price = (int)Math.Round(priceDecimal, MidpointRounding.AwayFromZero);
 
                     try
                     {

@@ -5,6 +5,15 @@ using System.Linq;
 
 namespace AgroRegionApp.Data
 {
+    internal sealed class AnalyticsPeriod
+    {
+        public int Year { get; set; }
+        public int? Quarter { get; set; }
+        public string DisplayName { get; set; }
+
+        public bool IsFullYear => !Quarter.HasValue;
+    }
+
     internal sealed class MonthlyAmountRow
     {
         public int Month { get; set; }
@@ -39,6 +48,7 @@ namespace AgroRegionApp.Data
 
     internal sealed class AnalyticsSummary
     {
+        public string PeriodLabel { get; set; }
         public decimal TotalSales { get; set; }
         public decimal TotalPurchases { get; set; }
         public int TotalStockTons { get; set; }
@@ -54,14 +64,49 @@ namespace AgroRegionApp.Data
         private static readonly string[] MonthNames =
             { "", "Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек" };
 
-        public static AnalyticsSummary Load(int year)
+        private static readonly string[] QuarterNames =
+            { "", "I кв.", "II кв.", "III кв.", "IV кв." };
+
+        public static List<AnalyticsPeriod> GetAvailablePeriods()
         {
+            var list = new List<AnalyticsPeriod>();
+            foreach (var year in new[] { 2026, 2025 })
+            {
+                list.Add(new AnalyticsPeriod
+                {
+                    Year = year,
+                    DisplayName = year + " год"
+                });
+
+                var maxQuarter = year == DateTime.Now.Year
+                    ? (DateTime.Now.Month - 1) / 3 + 1
+                    : 4;
+                for (var quarter = 1; quarter <= maxQuarter; quarter++)
+                {
+                    list.Add(new AnalyticsPeriod
+                    {
+                        Year = year,
+                        Quarter = quarter,
+                        DisplayName = QuarterNames[quarter] + " " + year
+                    });
+                }
+            }
+
+            return list;
+        }
+
+        public static AnalyticsSummary Load(AnalyticsPeriod period)
+        {
+            if (period == null)
+                throw new ArgumentNullException(nameof(period));
+
             var summary = new AnalyticsSummary
             {
-                SalesByMonth = LoadSalesByMonth(year),
-                PurchasesByMonth = LoadPurchasesByMonth(year),
+                PeriodLabel = period.DisplayName,
+                SalesByMonth = LoadSalesByMonth(period),
+                PurchasesByMonth = LoadPurchasesByMonth(period),
                 Stocks = LoadStocksPivot(),
-                Debtors = LoadDebtors(year)
+                Debtors = LoadDebtors(period)
             };
 
             summary.TotalSales = summary.SalesByMonth.Sum(r => r.Amount);
@@ -89,25 +134,27 @@ WHERE ISNULL(DebtAmount, 0) > 0";
             }
         }
 
-        private static List<MonthlyAmountRow> LoadSalesByMonth(int year)
+        private static List<MonthlyAmountRow> LoadSalesByMonth(AnalyticsPeriod period)
         {
             const string sql = @"
 SELECT MONTH(so.CreationDate) AS M,
        COUNT(*) AS Cnt,
-       ISNULL(SUM(so.PricePerKg * ISNULL(so.Quantity, 0)), 0) AS Amount,
+       ISNULL(SUM(so.PricePerKg * ISNULL(so.Quantity, 0) * 1000), 0) AS Amount,
        ISNULL(SUM(ISNULL(so.Quantity, 0)), 0) AS Qty
 FROM SalesOrder so
 WHERE YEAR(so.CreationDate) = @Year
+  AND (@Quarter IS NULL OR DATEPART(QUARTER, so.CreationDate) = @Quarter)
 GROUP BY MONTH(so.CreationDate)
 ORDER BY M";
 
-            return FillMonthlyGaps(LoadMonthlyFromDb(sql, year, true), year);
+            return FillMonthlyGaps(LoadMonthlyFromDb(sql, period, true), period);
         }
 
-        private static List<MonthlyAmountRow> LoadPurchasesByMonth(int year)
+        private static List<MonthlyAmountRow> LoadPurchasesByMonth(AnalyticsPeriod period)
         {
             var byMonth = PurchaseMockData.GetHistory()
-                .Where(h => h.Date.Year == year)
+                .Where(h => h.Date.Year == period.Year)
+                .Where(h => !period.Quarter.HasValue || ((h.Date.Month - 1) / 3 + 1) == period.Quarter.Value)
                 .GroupBy(h => h.Date.Month)
                 .ToDictionary(
                     g => g.Key,
@@ -116,7 +163,7 @@ ORDER BY M";
                         Month = g.Key,
                         MonthName = MonthNames[g.Key],
                         Count = g.Count(),
-                        Amount = g.Sum(h => (decimal)h.QtyTons * h.PricePerTon)
+                        Amount = g.Sum(h => (decimal)h.QtyTons * 1000m * h.PricePerKg)
                     });
 
             const string sql = @"
@@ -124,12 +171,14 @@ SELECT MONTH(po.CreationDate) AS M,
        po.PurchaseOrderID
 FROM PurchaseOrder po
 WHERE YEAR(po.CreationDate) = @Year
+  AND (@Quarter IS NULL OR DATEPART(QUARTER, po.CreationDate) = @Quarter)
 ORDER BY M";
 
             using (var conn = Db.OpenConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
-                cmd.Parameters.AddWithValue("@Year", year);
+                cmd.Parameters.AddWithValue("@Year", period.Year);
+                cmd.Parameters.AddWithValue("@Quarter", (object)period.Quarter ?? DBNull.Value);
                 using (var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
@@ -148,16 +197,17 @@ ORDER BY M";
                 }
             }
 
-            return FillMonthlyGaps(byMonth.Values.ToList(), year);
+            return FillMonthlyGaps(byMonth.Values.ToList(), period);
         }
 
-        private static List<MonthlyAmountRow> LoadMonthlyFromDb(string sql, int year, bool includeQty)
+        private static List<MonthlyAmountRow> LoadMonthlyFromDb(string sql, AnalyticsPeriod period, bool includeQty)
         {
             var list = new List<MonthlyAmountRow>();
             using (var conn = Db.OpenConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
-                cmd.Parameters.AddWithValue("@Year", year);
+                cmd.Parameters.AddWithValue("@Year", period.Year);
+                cmd.Parameters.AddWithValue("@Quarter", (object)period.Quarter ?? DBNull.Value);
                 using (var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
@@ -178,20 +228,36 @@ ORDER BY M";
             return list;
         }
 
-        private static List<MonthlyAmountRow> FillMonthlyGaps(List<MonthlyAmountRow> rows, int year)
+        private static (int StartMonth, int EndMonth) GetMonthRange(AnalyticsPeriod period)
+        {
+            if (period.IsFullYear)
+            {
+                var last = period.Year == DateTime.Now.Year ? DateTime.Now.Month : 12;
+                return (1, last);
+            }
+
+            var quarter = period.Quarter.Value;
+            var start = (quarter - 1) * 3 + 1;
+            var lastMonth = quarter * 3;
+            if (period.Year == DateTime.Now.Year)
+                lastMonth = Math.Min(lastMonth, DateTime.Now.Month);
+            return (start, lastMonth);
+        }
+
+        private static List<MonthlyAmountRow> FillMonthlyGaps(List<MonthlyAmountRow> rows, AnalyticsPeriod period)
         {
             var map = new Dictionary<int, MonthlyAmountRow>();
             foreach (var row in rows)
                 map[row.Month] = row;
 
+            var range = GetMonthRange(period);
             var result = new List<MonthlyAmountRow>();
-            var maxMonth = year == DateTime.Now.Year ? DateTime.Now.Month : 12;
-            for (var m = 1; m <= maxMonth; m++)
+            for (var month = range.StartMonth; month <= range.EndMonth; month++)
             {
-                if (map.TryGetValue(m, out var row))
+                if (map.TryGetValue(month, out var row))
                     result.Add(row);
                 else
-                    result.Add(new MonthlyAmountRow { Month = m, MonthName = MonthNames[m] });
+                    result.Add(new MonthlyAmountRow { Month = month, MonthName = MonthNames[month] });
             }
 
             return result;
@@ -232,15 +298,17 @@ ORDER BY p.Name";
             return list;
         }
 
-        private static List<DebtorRow> LoadDebtors(int year)
+        private static List<DebtorRow> LoadDebtors(AnalyticsPeriod period)
         {
             const string sql = @"
 SELECT c.Name,
        COUNT(so.SalesOrderID) AS OrderCount,
-       ISNULL(SUM(so.PricePerKg * ISNULL(so.Quantity, 0)), 0) AS OrderTotal,
+       ISNULL(SUM(so.PricePerKg * ISNULL(so.Quantity, 0) * 1000), 0) AS OrderTotal,
        ISNULL(c.DebtAmount, 0) AS DebtAmount
 FROM Customer c
-LEFT JOIN SalesOrder so ON so.CustomerID = c.CustomerID AND YEAR(so.CreationDate) = @Year
+LEFT JOIN SalesOrder so ON so.CustomerID = c.CustomerID
+    AND YEAR(so.CreationDate) = @Year
+    AND (@Quarter IS NULL OR DATEPART(QUARTER, so.CreationDate) = @Quarter)
 GROUP BY c.CustomerID, c.Name, c.DebtAmount
 HAVING COUNT(so.SalesOrderID) > 0 OR ISNULL(c.DebtAmount, 0) > 0
 ORDER BY DebtAmount DESC, c.Name";
@@ -251,7 +319,8 @@ ORDER BY DebtAmount DESC, c.Name";
                 using (var conn = Db.OpenConnection())
                 using (var cmd = new SqlCommand(sql, conn))
                 {
-                    cmd.Parameters.AddWithValue("@Year", year);
+                    cmd.Parameters.AddWithValue("@Year", period.Year);
+                    cmd.Parameters.AddWithValue("@Quarter", (object)period.Quarter ?? DBNull.Value);
                     using (var reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())

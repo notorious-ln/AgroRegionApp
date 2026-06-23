@@ -196,7 +196,7 @@ namespace AgroRegionApp.Data
             sb.AppendLine("</style></head><body><div class=\"Section1\">");
 
             sb.AppendLine("<h2>АНАЛИТИЧЕСКИЙ ОТЧЁТ</h2>");
-            sb.Append("<p style=\"text-align:center;color:#000000\">за ").Append(year).AppendLine(" год</p>");
+            sb.Append("<p style=\"text-align:center;color:#000000\">за ").Append(Esc(data.PeriodLabel ?? year.ToString())).AppendLine("</p>");
             sb.Append("<p style=\"color:#000000\">Организация: ").Append(Esc(CompanyProfile.LegalName))
                 .Append(". Дата формирования: ").Append(DateTime.Now.ToString("dd.MM.yyyy HH:mm")).AppendLine(".</p>");
 
@@ -299,7 +299,7 @@ namespace AgroRegionApp.Data
             sb.AppendLine("h2{font-family:'Times New Roman';font-size:16pt;}");
             sb.AppendLine("</style></head><body>");
 
-            sb.Append("<h2>Аналитический отчёт за ").Append(year).AppendLine(" год</h2>");
+            sb.Append("<h2>Аналитический отчёт за ").Append(Esc(data.PeriodLabel ?? year.ToString())).AppendLine("</h2>");
             sb.Append("<p style=\"font-family:'Times New Roman';font-size:14pt\">");
             sb.Append(CompanyProfile.LegalName).Append(". Дата: ").Append(DateTime.Now.ToString("dd.MM.yyyy HH:mm"));
             sb.AppendLine("</p>");

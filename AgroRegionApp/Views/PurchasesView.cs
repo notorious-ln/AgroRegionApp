@@ -194,7 +194,7 @@ namespace AgroRegionApp.Views
                 Поставщик = h.SupplierName,
                 Культура = h.ProductName,
                 Колво = h.QtyTons,
-                Цена = h.PricePerTon.ToString("N0")
+                Цена = h.PricePerKg.ToString("G29")
             }).ToList();
 
             UiControls.BindGrid(_historyGrid, rows.ToList());
@@ -209,7 +209,7 @@ namespace AgroRegionApp.Views
                 return;
 
             SetHeader(grid, "Колво", "Кол-во (т)");
-            SetHeader(grid, "Цена", "Цена ₽/т");
+            SetHeader(grid, "Цена", "Цена ₽/кг");
         }
 
         private static void SetHeader(DataGridView grid, string columnName, string header)
@@ -254,11 +254,11 @@ namespace AgroRegionApp.Views
             {
                 Культура = i.ProductName,
                 Колво = i.QtyTons,
-                Цена = i.PricePerTon.ToString("N0"),
+                Цена = i.PricePerKg.ToString("G29"),
                 Сумма = i.Total.ToString("N0")
             }).ToList());
             SetHeader(_itemsGrid, "Колво", "Кол-во (т)");
-            SetHeader(_itemsGrid, "Цена", "Цена ₽/т");
+            SetHeader(_itemsGrid, "Цена", "Цена ₽/кг");
             SetHeader(_itemsGrid, "Сумма", "Сумма ₽");
 
             ShowBottomMode(true);
@@ -445,8 +445,8 @@ namespace AgroRegionApp.Views
                 itemsGrid.AllowUserToAddRows = false;
                 itemsGrid.DataSource = new List<object>
                 {
-                    new { Культура = "Пшеница 3 кл.", Колво = 50, Цена = "4 800" },
-                    new { Культура = "Ячмень фуражный", Колво = 30, Цена = "4 000" }
+                    new { Культура = "Пшеница 3 кл.", Колво = 50, Цена = "4.8" },
+                    new { Культура = "Ячмень фуражный", Колво = 30, Цена = "4" }
                 };
 
                 var rowBtns = new FlowLayoutPanel

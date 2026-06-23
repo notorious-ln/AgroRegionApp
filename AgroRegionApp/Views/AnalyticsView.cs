@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -15,6 +16,7 @@ namespace AgroRegionApp.Views
         private readonly Panel _kpiPanel;
         private readonly Panel _contentPanel;
         private readonly ComboBox _periodCombo;
+        private readonly List<AnalyticsPeriod> _periods = new List<AnalyticsPeriod>();
         private int _activeTab;
         private bool _loaded;
         private AnalyticsSummary _currentData;
@@ -35,18 +37,17 @@ namespace AgroRegionApp.Views
             _periodCombo = new ComboBox
             {
                 Location = new Point(64, 4),
-                Width = 140,
+                Width = 168,
                 DropDownStyle = ComboBoxStyle.DropDownList,
                 Font = AppTheme.FontUi
             };
-            _periodCombo.Items.AddRange(new object[] { "2026 год", "2025 год" });
-            _periodCombo.SelectedIndex = 0;
+            PopulatePeriodCombo();
 
             var btnPrint = UiControls.CreateButton("🖨  Печать отчёта", true, 130);
-            btnPrint.Location = new Point(220, 4);
+            btnPrint.Location = new Point(248, 4);
             btnPrint.Click += (s, e) => OnPrintReport();
             var btnExport = UiControls.CreateButton("📤  Экспорт в Excel", false, 140);
-            btnExport.Location = new Point(356, 4);
+            btnExport.Location = new Point(384, 4);
             btnExport.Click += (s, e) => OnExportExcel();
 
             toolbar.Controls.Add(lblPeriod);
@@ -85,14 +86,28 @@ namespace AgroRegionApp.Views
             };
         }
 
-        private int SelectedYear => _periodCombo.SelectedIndex == 1 ? 2025 : 2026;
+        private void PopulatePeriodCombo()
+        {
+            _periods.Clear();
+            _periods.AddRange(AnalyticsService.GetAvailablePeriods());
+            _periodCombo.Items.Clear();
+            foreach (var period in _periods)
+                _periodCombo.Items.Add(period.DisplayName);
+            if (_periodCombo.Items.Count > 0)
+                _periodCombo.SelectedIndex = 0;
+        }
+
+        private AnalyticsPeriod SelectedPeriod =>
+            _periods.Count > 0 && _periodCombo.SelectedIndex >= 0 && _periodCombo.SelectedIndex < _periods.Count
+                ? _periods[_periodCombo.SelectedIndex]
+                : AnalyticsService.GetAvailablePeriods()[0];
 
         private void RefreshData()
         {
             AnalyticsSummary data;
             try
             {
-                data = AnalyticsService.Load(SelectedYear);
+                data = AnalyticsService.Load(SelectedPeriod);
                 _currentData = data;
             }
             catch (Exception ex)
@@ -127,16 +142,16 @@ namespace AgroRegionApp.Views
         {
             if (_currentData != null)
                 return _currentData;
-            return AnalyticsService.Load(SelectedYear);
+            return _currentData ?? AnalyticsService.Load(SelectedPeriod);
         }
 
         private void OnPrintReport()
         {
             try
             {
-                var year = SelectedYear;
+                var period = SelectedPeriod;
                 var data = GetReportData();
-                var folder = AnalyticsReportService.GetDefaultOutputFolder(year);
+                var folder = AnalyticsReportService.GetDefaultOutputFolder(period.Year);
 
                 using (var dlg = new FolderBrowserDialog
                 {
@@ -154,7 +169,7 @@ namespace AgroRegionApp.Views
                 (string WordPath, string PdfPath) files;
                 try
                 {
-                    files = AnalyticsReportService.GenerateWordAndPdf(data, year, folder);
+                    files = AnalyticsReportService.GenerateWordAndPdf(data, period.Year, folder);
                 }
                 finally
                 {
@@ -178,11 +193,11 @@ namespace AgroRegionApp.Views
         {
             try
             {
-                var year = SelectedYear;
+                var period = SelectedPeriod;
                 var data = GetReportData();
                 var defaultPath = Path.Combine(
-                    AnalyticsReportService.GetDefaultOutputFolder(year),
-                    $"Analitika_{year}.xls");
+                    AnalyticsReportService.GetDefaultOutputFolder(period.Year),
+                    $"Analitika_{SanitizeFileName(period.DisplayName)}.xls");
 
                 using (var dlg = new SaveFileDialog
                 {
@@ -195,7 +210,7 @@ namespace AgroRegionApp.Views
                     if (dlg.ShowDialog(FindForm()) != DialogResult.OK)
                         return;
 
-                    AnalyticsReportService.ExportToExcel(data, year, dlg.FileName);
+                    AnalyticsReportService.ExportToExcel(data, period.Year, dlg.FileName);
                     MessageBox.Show(
                         "Данные экспортированы:\n" + dlg.FileName,
                         AppBranding.SystemTitle,
@@ -531,6 +546,12 @@ namespace AgroRegionApp.Views
         {
             if (grid.Columns.Contains(column))
                 grid.Columns[column].HeaderText = header;
+        }
+        private static string SanitizeFileName(string name)
+        {
+            foreach (var ch in Path.GetInvalidFileNameChars())
+                name = name.Replace(ch, '_');
+            return name.Replace(' ', '_');
         }
     }
 }

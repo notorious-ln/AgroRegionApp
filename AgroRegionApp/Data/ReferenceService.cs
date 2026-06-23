@@ -405,28 +405,52 @@ WHERE CustomerID = @Id";
             if (string.IsNullOrEmpty(name))
                 return 0;
 
-            if (name.Contains("Пшеница")) return 5000;
-            if (name.Contains("Ячмень")) return 4000;
-            if (name.Contains("Кукуруза")) return 5500;
-            if (name.Contains("Подсолнечник")) return 8000;
+            if (name.Contains("Пшеница")) return 5;
+            if (name.Contains("Ячмень")) return 4;
+            if (name.Contains("Кукуруза")) return 5;
+            if (name.Contains("Подсолнечник")) return 8;
+            if (name.Contains("Яблоко")) return 35;
             return 0;
         }
 
         public static void DeleteProduct(int id)
         {
             using (var conn = Db.OpenConnection())
-            using (var cmd = new SqlCommand("DELETE FROM Product WHERE ProductID = @Id", conn))
             {
-                cmd.Parameters.AddWithValue("@Id", id);
-                try
+                using (var checkOrders = new SqlCommand(@"
+SELECT COUNT(*)
+FROM SalesOrder so
+INNER JOIN ProductStock ps ON ps.StockID = so.StockID
+WHERE ps.ProductID = @Id", conn))
                 {
-                    if (cmd.ExecuteNonQuery() == 0)
-                        throw new InvalidOperationException("Товар не найден.");
+                    checkOrders.Parameters.AddWithValue("@Id", id);
+                    if ((int)checkOrders.ExecuteScalar() > 0)
+                    {
+                        throw new InvalidOperationException(
+                            "Нельзя удалить товар: есть связанные заказы на продажу.");
+                    }
                 }
-                catch (SqlException ex) when (ex.Number == 547)
+
+                using (var deleteStock = new SqlCommand(
+                    "DELETE FROM ProductStock WHERE ProductID = @Id", conn))
                 {
-                    throw new InvalidOperationException(
-                        "Нельзя удалить товар: есть связанные остатки на складе.", ex);
+                    deleteStock.Parameters.AddWithValue("@Id", id);
+                    deleteStock.ExecuteNonQuery();
+                }
+
+                using (var cmd = new SqlCommand("DELETE FROM Product WHERE ProductID = @Id", conn))
+                {
+                    cmd.Parameters.AddWithValue("@Id", id);
+                    try
+                    {
+                        if (cmd.ExecuteNonQuery() == 0)
+                            throw new InvalidOperationException("Товар не найден.");
+                    }
+                    catch (SqlException ex) when (ex.Number == 547)
+                    {
+                        throw new InvalidOperationException(
+                            "Нельзя удалить товар: есть связанные записи в системе.", ex);
+                    }
                 }
             }
         }

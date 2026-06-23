@@ -24,7 +24,7 @@ namespace AgroRegionApp.Data
         public bool StockConfirmed { get; set; }
 
         public string OrderNumber => $"ЗП-{Id:D5}";
-        public decimal OrderTotal => PricePerKg * QuantityTons;
+        public decimal OrderTotal => PricePerKg * QuantityTons * 1000m;
 
         public bool CanGenerateDocuments =>
             (StatusName == "Подтверждён" || StatusName == "Готов к отгрузке") && StockConfirmed;

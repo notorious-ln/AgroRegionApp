@@ -39,7 +39,42 @@ namespace AgroRegionApp.UI
             }
 
             btn.FlatAppearance.BorderSize = 1;
+            btn.EnabledChanged += (s, e) => ApplyButtonEnabledStyle(btn, primary, danger);
+            ApplyButtonEnabledStyle(btn, primary, danger);
             return btn;
+        }
+
+        private static void ApplyButtonEnabledStyle(Button btn, bool primary, bool danger)
+        {
+            if (btn.Enabled)
+            {
+                if (primary)
+                {
+                    btn.BackColor = AppTheme.Blue;
+                    btn.ForeColor = Color.White;
+                    btn.FlatAppearance.BorderColor = Color.FromArgb(26, 90, 154);
+                }
+                else if (danger)
+                {
+                    btn.BackColor = Color.White;
+                    btn.ForeColor = AppTheme.Danger;
+                    btn.FlatAppearance.BorderColor = AppTheme.Border;
+                }
+                else
+                {
+                    btn.BackColor = Color.White;
+                    btn.ForeColor = AppTheme.TextBody;
+                    btn.FlatAppearance.BorderColor = AppTheme.Border;
+                }
+
+                btn.Cursor = Cursors.Hand;
+                return;
+            }
+
+            btn.BackColor = Color.FromArgb(243, 244, 246);
+            btn.ForeColor = AppTheme.TextLight;
+            btn.FlatAppearance.BorderColor = AppTheme.BorderLight;
+            btn.Cursor = Cursors.Default;
         }
 
         public static GroupBox CreateGroupBox(string title)

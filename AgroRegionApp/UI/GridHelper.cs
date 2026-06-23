@@ -21,10 +21,19 @@ namespace AgroRegionApp.UI
                     return;
 
                 var style = GetStatusStyle(text);
+                var row = grid.Rows[e.RowIndex];
                 e.CellStyle.BackColor = style.Back;
                 e.CellStyle.ForeColor = style.Fore;
-                e.CellStyle.SelectionBackColor = style.Back;
-                e.CellStyle.SelectionForeColor = style.Fore;
+                if (row.Selected)
+                {
+                    e.CellStyle.SelectionBackColor = AppTheme.GridSelect;
+                    e.CellStyle.SelectionForeColor = Color.White;
+                }
+                else
+                {
+                    e.CellStyle.SelectionBackColor = style.Back;
+                    e.CellStyle.SelectionForeColor = style.Fore;
+                }
             };
         }
 

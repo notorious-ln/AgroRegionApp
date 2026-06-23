@@ -37,8 +37,8 @@ BEGIN
 END
 GO
 
-UPDATE dbo.Product SET Unit = N'т', BasePrice = 5000 WHERE Name = N'Пшеница 3 кл.';
-UPDATE dbo.Product SET Unit = N'т', BasePrice = 4000 WHERE Name = N'Ячмень фуражный';
-UPDATE dbo.Product SET Unit = N'т', BasePrice = 5500 WHERE Name = N'Кукуруза';
-UPDATE dbo.Product SET Unit = N'т', BasePrice = 8000 WHERE Name = N'Подсолнечник';
+UPDATE dbo.Product SET Unit = N'т', BasePrice = 5 WHERE Name = N'Пшеница 3 кл.';
+UPDATE dbo.Product SET Unit = N'т', BasePrice = 4 WHERE Name = N'Ячмень фуражный';
+UPDATE dbo.Product SET Unit = N'т', BasePrice = 5 WHERE Name = N'Кукуруза';
+UPDATE dbo.Product SET Unit = N'т', BasePrice = 8 WHERE Name = N'Подсолнечник';
 GO

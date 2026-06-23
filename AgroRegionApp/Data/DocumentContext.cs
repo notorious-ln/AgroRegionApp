@@ -51,7 +51,7 @@ namespace AgroRegionApp.Data
         public string SumFormatted => OrderTotal.ToString("N0");
         public string UnitPriceFormatted => UnitPrice.ToString("G29");
         public string DateFormatted => Date.ToString("dd.MM.yyyy");
-        public string UnitPriceLabel => IsPurchase ? "₽/т" : "₽/кг";
+        public string UnitPriceLabel => "₽/кг";
 
         public string SupplierLine => IsPurchase ? CounterpartyLine : CompanyProfile.OrganizationLine;
         public string BuyerLine => IsPurchase ? CompanyProfile.OrganizationLine : CounterpartyLine;
@@ -92,7 +92,7 @@ namespace AgroRegionApp.Data
                 ProductVariety = "—",
                 WarehouseName = "—",
                 QuantityTons = items.Sum(i => i.QtyTons),
-                UnitPrice = first?.PricePerTon ?? 0,
+                UnitPrice = first?.PricePerKg ?? 0,
                 OrderTotal = PurchaseMockData.GetOrderTotal(order.Id)
             };
         }
